@@ -1,4 +1,5 @@
 import argparse
+from pyswip import Prolog
 from openai import OpenAI
 from os import getenv
 import weave
@@ -73,11 +74,13 @@ def extract_prolog_code(graph_data):
 
 def test_prolog_graph(prolog_code):
     """Runs a simple Prolog command to test the graph."""
-    # This is a placeholder for actual Prolog testing logic.
-    # You can use a Prolog interpreter or library to run queries on the prolog_code.
+    prolog = Prolog()
+    prolog.assertz(prolog_code)
+
     print("Testing Prolog graph...")
     # Example: Check if a specific fact exists
-    if "company(canva)." in prolog_code:
+    query_result = list(prolog.query("company(canva)"))
+    if query_result:
         print("Test passed: 'company(canva).' exists in the Prolog graph.")
     else:
         print("Test failed: 'company(canva).' does not exist in the Prolog graph.")
