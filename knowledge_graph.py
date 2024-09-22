@@ -5,7 +5,7 @@ from os import getenv
 from weave import trace
 
 # Initialize Weave tracing
-weave.init("wb_customer_knowledge_graph")
+trace.init("wb_customer_knowledge_graph")
 
 
 def build_knowledge_graph(content_file):
