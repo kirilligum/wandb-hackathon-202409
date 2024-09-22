@@ -36,7 +36,7 @@ def build_knowledge_graph(content_file):
     graph_data = response.choices[0].message.content
     prolog_code = extract_prolog_code(graph_data)
     print("Prolog Code:\n", prolog_code)
-    # test_prolog_graph(prolog_code)
+    test_prolog_graph(prolog_code)
 
     # Dummy graph data for demonstration purposes
     # graph_data = """
@@ -49,12 +49,8 @@ def build_knowledge_graph(content_file):
     # prolog_code = extract_prolog_code(graph_data)
     # print("Prolog Code:\n", prolog_code)
     # test_prolog_graph(prolog_code)
-    # Create a Prolog file
-    with open("knowledge_base.pl", "w") as f:
-        f.write(prolog_code)
-
-    # Test the Prolog graph
-    test_prolog_graph("knowledge_base.pl")
+    # Test the Prolog graph directly with the code
+    test_prolog_graph(prolog_code)
 
     # Use Weave to trace the graph creation process
     # with weave.trace("build_knowledge_graph"):
@@ -93,9 +89,12 @@ def extract_prolog_code(graph_data):
 def test_prolog_graph(prolog_code):
     """Runs a Prolog query to test the graph."""
 
-    def run_prolog_query(prolog_file, query):
+    def run_prolog_query(prolog_code, query):
+        # Write the Prolog code to a temporary file
+        with open("temp_prolog.pl", "w") as f:
+            f.write(prolog_code)
         process = subprocess.Popen(
-            ["swipl", "-s", prolog_file, "-g", query, "-t", "halt"],
+            ["swipl", "-s", "temp_prolog.pl", "-g", query, "-t", "halt"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
