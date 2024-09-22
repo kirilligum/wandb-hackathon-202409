@@ -2,10 +2,10 @@ import argparse
 import subprocess
 from openai import OpenAI
 from os import getenv
-# import weave
+import weave
 
 # Initialize Weave tracing
-# weave.init("wb_customer_knowledge_graph")
+weave.init("wb_customer_knowledge_graph")
 
 
 def build_knowledge_graph(content_file):
@@ -18,13 +18,56 @@ def build_knowledge_graph(content_file):
         base_url="https://openrouter.ai/api/v1",
         api_key=getenv("OPENROUTER_API_KEY"),
     )
+    prolog_kg_format = """
+
+
+    ### Types of Nodes (Prolog Format):
+
+    - **Companies**: `company(Name).`
+    - **Products and Services**: `product_service(Name).`
+    - **Customers**: `customer(Name).`
+    - **Customer Segments**: `customer_segment(Name).`
+    - **Marketing Campaigns**: `marketing_campaign(Name).`
+    - **Sales Representatives**: `sales_representative(Name).`
+    - **Marketing Channels**: `marketing_channel(Name).`
+    - **Competitors**: `competitor(Name).`
+    - **Partners and Suppliers**: `partner_supplier(Name).`
+    - **Market Segments**: `market_segment(Name).`
+    - **Events and Conferences**: `event(Name).`
+    - **Trends and Technologies**: `trend_technology(Name).`
+    - **Geographic Locations**: `geographic_location(Name).`
+
+    ### Types of Connections (Prolog Format):
+
+    - **Offers**: `offers(Company, ProductService).`
+    - **Purchases**: `purchases(Customer, ProductService).`
+    - **Located In**: `located_in(Entity, GeographicLocation).` *(Entity can be a Company or Customer)*
+    - **Targets**: `targets(MarketingCampaign, CustomerSegment).`
+    - **Utilizes**: `utilizes(MarketingCampaign, MarketingChannel).`
+    - **Competes With**: `competes_with(Company, Competitor).`
+    - **Partners With**: `partners_with(Company, PartnerSupplier).`
+    - **Belongs To**: `belongs_to(Customer, MarketSegment).`
+    - **Attended By**: `attended_by(Event, Entity).` *(Entity can be a Company or Customer)*
+    - **Influences**: `influences(TrendTechnology, MarketSegment).`
+    - **Managed By**: `managed_by(SalesRepresentative, CustomerAccount).`
+    - **Interacts On**: `interacts_on(Customer, SocialMediaPlatform).`
+    - **Associated With**: `associated_with(ProductService, TrendTechnology).`
+
+    Repeat this format for each type of connection to build the knowledge graph.
+
+    Enclose this prolog language output in a single '''prolog ... '''. do not split the prolog program. this prolog program will be compiled by prolog
+
+    Please create a knowledge graph with the following structure and present it in Prolog format. For each node type and connection type, use the specified Prolog predicates below. Ensure that the format is consistent throughout.
+
+
+    """
     response = client.chat.completions.create(
         # model="meta-llama/llama-3.1-405b-instruct",
         model="openai/gpt-4o-mini",
         messages=[
             {
                 "role": "user",
-                "content": f"Create a knowledge graph in prolog language for marketing based on the following content: {content}",
+                "content": f"Create a knowledge graph in prolog language for marketing based on the following format and content:\n ### format:\n{prolog_kg_format}\n\n\n###Content:\n{content}",
             },
         ],
         # max_tokens=131000,
@@ -34,18 +77,19 @@ def build_knowledge_graph(content_file):
     # # Parse the response to extract the knowledge graph
     # graph_data = response.choices[0].message.content.strip()
     graph_data = response.choices[0].message.content
-    prolog_code = extract_prolog_code(graph_data)
-    print("Prolog Code:\n", prolog_code)
-    test_prolog_graph(prolog_code)
-
-    # Dummy graph data for demonstration purposes
     # graph_data = """
     # ```prolog
+    # company(canva).
     # node(a).
     # node(b).
     # edge(a, b).
     # ```
     # """
+    prolog_code = extract_prolog_code(graph_data)
+    print("Prolog Code:\n", prolog_code)
+    test_prolog_graph(prolog_code)
+
+    # Dummy graph data for demonstration purposes
     # prolog_code = extract_prolog_code(graph_data)
     # print("Prolog Code:\n", prolog_code)
     # test_prolog_graph(prolog_code)
@@ -53,13 +97,13 @@ def build_knowledge_graph(content_file):
     test_prolog_graph(prolog_code)
 
     # Use Weave to trace the graph creation process
-    # with weave.trace("build_knowledge_graph"):
-    #     # Here you would parse the graph_data into a structured format
-    #     # For demonstration, let's assume graph_data is already structured
-    #     graph = parse_graph_data(graph_data)
+    with weave.trace("build_knowledge_graph"):
+        # Here you would parse the graph_data into a structured format
+        # For demonstration, let's assume graph_data is already structured
+        graph = parse_graph_data(graph_data)
 
     # return graph
-    # return graph_data
+    return graph_data
 
 
 def parse_graph_data(graph_data):
@@ -106,9 +150,10 @@ def test_prolog_graph(prolog_code):
             return stderr.decode().strip()
 
     # Query Prolog
-    print("Checking if node 'a' exists:", run_prolog_query(prolog_code, "node(a)"))
-    print("Checking if node 'b' exists:", run_prolog_query(prolog_code, "node(b)"))
-    print("Checking if node 'canva' exists:", run_prolog_query(prolog_code, "node(canva)"))
+    print(
+        "Checking if node 'canva' exists:",
+        run_prolog_query(prolog_code, "company(canva)"),
+    )
 
 
 if __name__ == "__main__":
@@ -124,5 +169,5 @@ if __name__ == "__main__":
     graph = build_knowledge_graph(args.content)
 
     # Output the graph in Prolog format
-    # prolog_output = output_graph_prolog(graph)
-    # print(prolog_output)
+    prolog_output = output_graph_prolog(graph)
+    print(prolog_output)
