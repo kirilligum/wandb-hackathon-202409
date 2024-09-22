@@ -73,12 +73,12 @@ def extract_prolog_code(graph_data):
 
 
 def test_prolog_graph(prolog_code):
-    """Runs a simple Prolog command to test the graph."""
+    """Runs a Prolog query to test the graph."""
     prolog = Prolog()
     prolog.assertz(prolog_code)
 
     print("Testing Prolog graph...")
-    # Example: Check if a specific fact exists
+    # Check if a specific fact exists
     query_result = list(prolog.query("company(canva)"))
     if query_result:
         print("Test passed: 'company(canva).' exists in the Prolog graph.")
