@@ -5,9 +5,10 @@ from os import getenv
 import weave
 
 # Initialize Weave tracing
-weave.init(project="knowledge_graph_project")
+# weave.init(project="knowledge_graph_project")
 
 
+@weave.op
 def build_knowledge_graph(content_file):
     # Read content from the file
     with open(content_file, "r") as file:
@@ -130,6 +131,7 @@ def extract_prolog_code(graph_data):
     return ""
 
 
+@weave.op
 def test_prolog_graph(prolog_code):
     """Runs a Prolog query to test the graph."""
 
