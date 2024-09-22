@@ -11,10 +11,15 @@ from weave.flow.scorer import MultiTaskBinaryClassificationF1
 weave.init("knowledge_graph_project")
 
 
+# @weave.op
+# def build_knowledge_graph(content_file):
+#     # Read content from the file
+#     with open(content_file, "r") as file:
+#         content = file.read()
 @weave.op
-def build_knowledge_graph(content_file):
+def build_knowledge_graph():
     # Read content from the file
-    with open(content_file, "r") as file:
+    with open("content.html", "r") as file:
         content = file.read()
 
     # Use OpenRouter with OpenAI API to generate structured output for the knowledge graph
@@ -82,12 +87,10 @@ def build_knowledge_graph(content_file):
     graph_data = response.choices[0].message.content
     prolog_code = extract_prolog_code(graph_data)
     print("Prolog Code:\n", prolog_code)
-    old_test_prolog_graph(prolog_code)
+    # old_test_prolog_graph(prolog_code)
 
-    # Test the Prolog graph directly with the code
-    old_test_prolog_graph(prolog_code)
-
-    return graph_data
+    # return graph_data
+    return prolog_code
 
 
 def parse_graph_data(graph_data):
@@ -111,10 +114,15 @@ class PrologGraphModel(weave.Model):
 
     @weave.op()
     async def predict(self, query: str) -> dict:
-        result = self.run_prolog_query(self.prolog_code, query)
+        result = self.run_prolog_query(query)
+        print("rrrrrrrrrresult", result)
+        # result = self.run_prolog_query(self.prolog_code, query)
         return {"exists": "true" in result}
 
-    def run_prolog_query(self, prolog_code, query):
+    # def run_prolog_query(self, prolog_code, query):
+    def run_prolog_query(self, query):
+        prolog_code = build_knowledge_graph()
+        print("^^^^^^^^^^^^^", prolog_code)
         with open("temp_prolog.pl", "w") as f:
             f.write(prolog_code)
         process = subprocess.Popen(
@@ -123,35 +131,22 @@ class PrologGraphModel(weave.Model):
             stderr=subprocess.PIPE,
         )
         stdout, stderr = process.communicate()
+        print("ssssssssssssstdout", stdout.decode().strip())
 
         if process.returncode == 0:
             return stdout.decode().strip()
         else:
             return stderr.decode().strip()
 
-# Initialize Weave evaluation
-weave.init('knowledge_graph_evaluation')
 
 # Create the model
-model = PrologGraphModel(prolog_code="")
-
-# Define the dataset and labels
-queries = ["company(canva)", "competitor(adobe)", "partner_supplier(anyscale)"]
-labels = [{"exists": True}, {"exists": False}, {"exists": False}]
-examples = [{"id": str(i), "query": queries[i], "target": labels[i]} for i in range(len(queries))]
-
 # Define a scoring function
 @weave.op()
 def existence_score(target: dict, model_output: dict) -> dict:
-    return {'correct': target['exists'] == model_output['exists']}
+    return {"correct": target["exists"] == model_output["exists"]}
+
 
 # Run the evaluation
-evaluation = weave.Evaluation(
-    name='prolog_graph_eval',
-    dataset=examples,
-    scorers=[MultiTaskBinaryClassificationF1(class_names=["exists"]), existence_score],
-)
-print(asyncio.run(evaluation.evaluate(model)))
 
 
 @weave.op
@@ -167,12 +162,14 @@ def old_test_prolog_graph(prolog_code):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        stdout, stderr = process.communicate()
+        # stdout, stderr = process.communicate()
 
         if process.returncode == 0:
-            return stdout.decode().strip()
+            return True
+            # return stdout.decode().strip()
         else:
-            return stderr.decode().strip()
+            return False
+            # return stderr.decode().strip()
 
     # Query Prolog
     print(
@@ -191,4 +188,24 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Build the knowledge graph
-    graph = build_knowledge_graph(args.content)
+    # graph = build_knowledge_graph(args.content)
+
+    model = PrologGraphModel(prolog_code="")
+
+    # Define the dataset and labels
+    queries = ["company(canva)", "competitor(adobe)", "partner_supplier(anyscale)"]
+    labels = [{"exists": True}, {"exists": False}, {"exists": False}]
+    examples = [
+        {"id": str(i), "query": queries[i], "target": labels[i]}
+        for i in range(len(queries))
+    ]
+
+    evaluation = weave.Evaluation(
+        name="prolog_graph_eval",
+        dataset=examples,
+        scorers=[
+            MultiTaskBinaryClassificationF1(class_names=["exists"]),
+            existence_score,
+        ],
+    )
+    print(asyncio.run(evaluation.evaluate(model)))
