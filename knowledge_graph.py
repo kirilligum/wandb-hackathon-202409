@@ -33,7 +33,9 @@ def build_knowledge_graph(content_file):
     # Parse the response to extract the knowledge graph
     # graph_data = response.choices[0].message.content.strip()
     graph_data = response.choices[0].message.content
-    print("graph_data", graph_data)
+    prolog_code = extract_prolog_code(graph_data)
+    print("Prolog Code:\n", prolog_code)
+    test_prolog_graph(prolog_code)
 
     # Use Weave to trace the graph creation process
     with weave.trace("build_knowledge_graph"):
@@ -60,7 +62,24 @@ def output_graph_prolog(graph):
     return prolog_output
 
 
-if __name__ == "__main__":
+def extract_prolog_code(graph_data):
+    """Extracts the Prolog code from the response."""
+    start = graph_data.find("```prolog")
+    end = graph_data.find("```", start + 1)
+    if start != -1 and end != -1:
+        return graph_data[start + len("```prolog"):end].strip()
+    return ""
+
+def test_prolog_graph(prolog_code):
+    """Runs a simple Prolog command to test the graph."""
+    # This is a placeholder for actual Prolog testing logic.
+    # You can use a Prolog interpreter or library to run queries on the prolog_code.
+    print("Testing Prolog graph...")
+    # Example: Check if a specific fact exists
+    if "company(canva)." in prolog_code:
+        print("Test passed: 'company(canva).' exists in the Prolog graph.")
+    else:
+        print("Test failed: 'company(canva).' does not exist in the Prolog graph.")
     parser = argparse.ArgumentParser(
         description="Build a knowledge graph for marketing."
     )
