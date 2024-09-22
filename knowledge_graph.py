@@ -109,7 +109,7 @@ def test_prolog_graph(prolog_code):
     # Query Prolog
     print("Checking if node 'a' exists:", run_prolog_query(prolog_code, "node(a)"))
     print("Checking if node 'b' exists:", run_prolog_query(prolog_code, "node(b)"))
-    print("Checking if node 'c' exists:", run_prolog_query(prolog_code, "node(c)"))
+    print("Checking if node 'canva' exists:", run_prolog_query(prolog_code, "node(canva)"))
 
 
 if __name__ == "__main__":
