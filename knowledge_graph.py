@@ -3,6 +3,9 @@ import subprocess
 from openai import OpenAI
 from os import getenv
 import weave
+import json
+import asyncio
+from weave.flow.scorer import MultiTaskBinaryClassificationF1
 
 # Initialize Weave tracing
 weave.init("knowledge_graph_project")
@@ -117,12 +120,15 @@ def extract_prolog_code(graph_data):
     return ""
 
 
-@weave.op
-def test_prolog_graph(prolog_code):
-    """Runs a Prolog query to test the graph."""
+class PrologGraphModel(weave.Model):
+    prolog_code: str
 
-    def run_prolog_query(prolog_code, query):
-        # Write the Prolog code to a temporary file
+    @weave.op()
+    async def predict(self, query: str) -> dict:
+        result = self.run_prolog_query(self.prolog_code, query)
+        return {"exists": "true" in result}
+
+    def run_prolog_query(self, prolog_code, query):
         with open("temp_prolog.pl", "w") as f:
             f.write(prolog_code)
         process = subprocess.Popen(
@@ -137,11 +143,29 @@ def test_prolog_graph(prolog_code):
         else:
             return stderr.decode().strip()
 
-    # Query Prolog
-    print(
-        "Checking if node 'canva' exists:",
-        run_prolog_query(prolog_code, "company(canva)"),
-    )
+# Initialize Weave evaluation
+weave.init('knowledge_graph_evaluation')
+
+# Create the model
+model = PrologGraphModel(prolog_code="")
+
+# Define the dataset and labels
+queries = ["company(canva)", "competitor(adobe)", "partner_supplier(anyscale)"]
+labels = [{"exists": True}, {"exists": False}, {"exists": False}]
+examples = [{"id": str(i), "query": queries[i], "target": labels[i]} for i in range(len(queries))]
+
+# Define a scoring function
+@weave.op()
+def existence_score(target: dict, model_output: dict) -> dict:
+    return {'correct': target['exists'] == model_output['exists']}
+
+# Run the evaluation
+evaluation = weave.Evaluation(
+    name='prolog_graph_eval',
+    dataset=examples,
+    scorers=[MultiTaskBinaryClassificationF1(class_names=["exists"]), existence_score],
+)
+print(asyncio.run(evaluation.evaluate(model)))
 
 
 @weave.op
