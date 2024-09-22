@@ -76,17 +76,24 @@ def extract_prolog_code(graph_data):
 def test_prolog_graph(prolog_code):
     """Runs a Prolog query to test the graph."""
     prolog = Prolog()
-    # prolog.assertz("father(michael,john)")
-    # prolog.assertz("father(michael,gina)")
-    # list(prolog.query("father(michael,X)")) == [{"X": "john"}, {"X": "gina"}]
-    # for soln in prolog.query("father(X,Y)"):
-    #     print(soln["X"], "is the father of", soln["Y"])
-    # michael is the father of john
-    # michael is the father of gina
 
+    # Define Prolog facts and rules
     prolog.assertz("node(a)")
     prolog.assertz("node(b)")
     prolog.assertz("edge(a, b)")
+
+    # Function to check the existence of a node
+    def node_exists(node_name):
+        query = f"node({node_name})"
+        result = list(prolog.query(query))
+        if result:
+            return True
+        return False
+
+    # Test existence of nodes
+    print("Checking if node 'a' exists:", node_exists("a"))  # Should return True
+    print("Checking if node 'b' exists:", node_exists("b"))  # Should return True
+    print("Checking if node 'c' exists:", node_exists("c"))  # Should return False
 
     # # Assert each line of the Prolog code separately
     # for line in prolog_code.splitlines():
