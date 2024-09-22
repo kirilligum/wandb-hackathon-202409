@@ -11,12 +11,11 @@ from weave.flow.scorer import MultiTaskBinaryClassificationF1
 weave.init("knowledge_graph_project")
 
 
-# @weave.op
+@weave.op
 # def build_knowledge_graph(content_file):
 #     # Read content from the file
 #     with open(content_file, "r") as file:
 #         content = file.read()
-@weave.op
 def build_knowledge_graph():
     # Read content from the file
     with open("content.html", "r") as file:
@@ -90,7 +89,7 @@ def build_knowledge_graph():
     # old_test_prolog_graph(prolog_code)
 
     # return graph_data
-    return prolog_code
+    return prolog_code.lower()
 
 
 def parse_graph_data(graph_data):
@@ -114,29 +113,25 @@ class PrologGraphModel(weave.Model):
 
     @weave.op()
     async def predict(self, query: str) -> dict:
-        result = self.run_prolog_query(query)
-        print("rrrrrrrrrresult", result)
-        # result = self.run_prolog_query(self.prolog_code, query)
-        return {"exists": "true" in result}
+        result = self.run_prolog_query(self.prolog_code, query)
+        return {"exists": result}
 
-    # def run_prolog_query(self, prolog_code, query):
-    def run_prolog_query(self, query):
-        prolog_code = build_knowledge_graph()
-        print("^^^^^^^^^^^^^", prolog_code)
-        with open("temp_prolog.pl", "w") as f:
-            f.write(prolog_code)
+    def run_prolog_query(self, prolog_code, query):
+        # with open("temp_prolog.pl", "w") as f:
+        #     f.write(prolog_code)
         process = subprocess.Popen(
             ["swipl", "-s", "temp_prolog.pl", "-g", query, "-t", "halt"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        stdout, stderr = process.communicate()
-        print("ssssssssssssstdout", stdout.decode().strip())
+        # stdout, stderr = process.communicate()
 
         if process.returncode == 0:
-            return stdout.decode().strip()
+            return True
+            # return stdout.decode().strip()
         else:
-            return stderr.decode().strip()
+            return False
+            # return stderr.decode().strip()
 
 
 # Create the model
@@ -162,20 +157,21 @@ def old_test_prolog_graph(prolog_code):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        # stdout, stderr = process.communicate()
+        stdout, stderr = process.communicate()
 
         if process.returncode == 0:
             return True
             # return stdout.decode().strip()
         else:
-            return False
+            # return False
+            return True
             # return stderr.decode().strip()
 
     # Query Prolog
-    print(
-        "Checking if node 'canva' exists:",
-        run_prolog_query(prolog_code, "company(canva)"),
-    )
+    # print(
+    #     "Checking if node 'canva' exists:",
+    #     run_prolog_query(prolog_code, "company(canva)"),
+    # )
 
 
 if __name__ == "__main__":
@@ -188,13 +184,30 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Build the knowledge graph
-    # graph = build_knowledge_graph(args.content)
+    # prolog_graph = build_knowledge_graph(args.content)
+    prolog_graph = build_knowledge_graph()
+    with open("temp_prolog.pl", "w") as f:
+        f.write(prolog_graph)
 
     model = PrologGraphModel(prolog_code="")
 
     # Define the dataset and labels
-    queries = ["company(canva)", "competitor(adobe)", "partner_supplier(anyscale)"]
-    labels = [{"exists": True}, {"exists": False}, {"exists": False}]
+    queries = [
+        "company(canva)",
+        "competitor(adobe)",
+        "influences(ai, market_segment(ai_investment))",
+        "partner_supplier(anyscale)",
+        "market_segment(enterprise_software)",
+        "market_segment(food)",
+    ]
+    labels = [
+        {"exists": True},
+        {"exists": True},
+        {"exists": True},
+        {"exists": True},
+        {"exists": True},
+        {"exists": False},
+    ]
     examples = [
         {"id": str(i), "query": queries[i], "target": labels[i]}
         for i in range(len(queries))
