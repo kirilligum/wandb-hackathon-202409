@@ -67,8 +67,9 @@ def extract_prolog_code(graph_data):
     start = graph_data.find("```prolog")
     end = graph_data.find("```", start + 1)
     if start != -1 and end != -1:
-        return graph_data[start + len("```prolog"):end].strip()
+        return graph_data[start + len("```prolog") : end].strip()
     return ""
+
 
 def test_prolog_graph(prolog_code):
     """Runs a simple Prolog command to test the graph."""
@@ -80,6 +81,9 @@ def test_prolog_graph(prolog_code):
         print("Test passed: 'company(canva).' exists in the Prolog graph.")
     else:
         print("Test failed: 'company(canva).' does not exist in the Prolog graph.")
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Build a knowledge graph for marketing."
     )
