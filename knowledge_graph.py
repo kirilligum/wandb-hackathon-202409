@@ -5,7 +5,7 @@ from os import getenv
 import weave
 
 # Initialize Weave tracing
-# weave.init(project="knowledge_graph_project")
+weave.init(project="knowledge_graph_project")
 
 
 @weave.op
