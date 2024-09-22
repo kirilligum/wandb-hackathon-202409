@@ -10,8 +10,8 @@ from os import getenv
 
 def build_knowledge_graph(content_file):
     # Read content from the file
-    # with open(content_file, "r") as file:
-    #     content = file.read()
+    with open(content_file, "r") as file:
+        content = file.read()
 
     # # Use OpenRouter with OpenAI API to generate structured output for the knowledge graph
     # client = OpenAI(
@@ -33,9 +33,16 @@ def build_knowledge_graph(content_file):
 
     # # Parse the response to extract the knowledge graph
     # # graph_data = response.choices[0].message.content.strip()
-    # graph_data = response.choices[0].message.content
-    # prolog_code = extract_prolog_code(graph_data)
-    # print("Prolog Code:\n", prolog_code)
+    # Dummy graph data for demonstration purposes
+    graph_data = """
+    ```prolog
+    node(a).
+    node(b).
+    edge(a, b).
+    ```
+    """
+    prolog_code = extract_prolog_code(graph_data)
+    print("Prolog Code:\n", prolog_code)
     # test_prolog_graph(prolog_code)
     # Create a Prolog file
     with open('knowledge_base.pl', 'w') as f:
