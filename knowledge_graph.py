@@ -2,10 +2,10 @@ import argparse
 import subprocess
 from openai import OpenAI
 from os import getenv
-from weave import trace
+import weave
 
 # Initialize Weave tracing
-trace.init("wb_customer_knowledge_graph")
+weave.init(project="wb_customer_knowledge_graph")
 
 
 def build_knowledge_graph(content_file):
@@ -97,7 +97,7 @@ def build_knowledge_graph(content_file):
     test_prolog_graph(prolog_code)
 
     # Use Weave to trace the graph creation process
-    with trace("build_knowledge_graph"):
+    with weave.trace("build_knowledge_graph"):
         # Here you would parse the graph_data into a structured format
         # For demonstration, let's assume graph_data is already structured
         graph = parse_graph_data(graph_data)
