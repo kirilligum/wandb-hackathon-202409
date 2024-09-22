@@ -75,7 +75,10 @@ def extract_prolog_code(graph_data):
 def test_prolog_graph(prolog_code):
     """Runs a Prolog query to test the graph."""
     prolog = Prolog()
-    prolog.assertz(prolog_code)
+    # Assert each line of the Prolog code separately
+    for line in prolog_code.splitlines():
+        if line.strip():  # Ensure the line is not empty
+            prolog.assertz(line.strip())
 
     print("Testing Prolog graph...")
     # Check if a specific fact exists
