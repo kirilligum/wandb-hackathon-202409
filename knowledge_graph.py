@@ -78,29 +78,15 @@ def build_knowledge_graph(content_file):
         # temperature=0.5,
     )
 
-    # # Parse the response to extract the knowledge graph
-    # graph_data = response.choices[0].message.content.strip()
+    # Parse the response to extract the knowledge graph
     graph_data = response.choices[0].message.content
-    # graph_data = """
-    # ```prolog
-    # company(canva).
-    # node(a).
-    # node(b).
-    # edge(a, b).
-    # ```
-    # """
     prolog_code = extract_prolog_code(graph_data)
     print("Prolog Code:\n", prolog_code)
-    test_prolog_graph(prolog_code)
+    old_test_prolog_graph(prolog_code)
 
-    # Dummy graph data for demonstration purposes
-    # prolog_code = extract_prolog_code(graph_data)
-    # print("Prolog Code:\n", prolog_code)
-    # test_prolog_graph(prolog_code)
     # Test the Prolog graph directly with the code
-    test_prolog_graph(prolog_code)
+    old_test_prolog_graph(prolog_code)
 
-    # return graph
     return graph_data
 
 
