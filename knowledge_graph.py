@@ -1,5 +1,5 @@
 import argparse
-from pyswip import Prolog
+import subprocess
 from openai import OpenAI
 from os import getenv
 # import weave
@@ -37,7 +37,12 @@ def build_knowledge_graph(content_file):
     # prolog_code = extract_prolog_code(graph_data)
     # print("Prolog Code:\n", prolog_code)
     # test_prolog_graph(prolog_code)
-    test_prolog_graph("")
+    # Create a Prolog file
+    with open('knowledge_base.pl', 'w') as f:
+        f.write(prolog_code)
+
+    # Test the Prolog graph
+    test_prolog_graph('knowledge_base.pl')
 
     # Use Weave to trace the graph creation process
     # with weave.trace("build_knowledge_graph"):
@@ -75,38 +80,20 @@ def extract_prolog_code(graph_data):
 
 def test_prolog_graph(prolog_code):
     """Runs a Prolog query to test the graph."""
-    prolog = Prolog()
+    def run_prolog_query(prolog_file, query):
+        process = subprocess.Popen(['swipl', '-s', prolog_file, '-g', query, '-t', 'halt'],
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
 
-    # Define Prolog facts and rules
-    prolog.assertz("node(a)")
-    prolog.assertz("node(b)")
-    prolog.assertz("edge(a, b)")
+        if process.returncode == 0:
+            return stdout.decode().strip()
+        else:
+            return stderr.decode().strip()
 
-    # Function to check the existence of a node
-    def node_exists(node_name):
-        query = f"node({node_name})"
-        result = list(prolog.query(query))
-        if result:
-            return True
-        return False
-
-    # Test existence of nodes
-    print("Checking if node 'a' exists:", node_exists("a"))  # Should return True
-    print("Checking if node 'b' exists:", node_exists("b"))  # Should return True
-    print("Checking if node 'c' exists:", node_exists("c"))  # Should return False
-
-    # # Assert each line of the Prolog code separately
-    # for line in prolog_code.splitlines():
-    #     if line.strip():  # Ensure the line is not empty
-    #         prolog.assertz(line.strip())
-
-    # print("Testing Prolog graph...")
-    # # Check if a specific fact exists
-    # query_result = list(prolog.query("company(canva)"))
-    # if query_result:
-    #     print("Test passed: 'company(canva).' exists in the Prolog graph.")
-    # else:
-    #     print("Test failed: 'company(canva).' does not exist in the Prolog graph.")
+    # Query Prolog
+    print("Checking if node 'a' exists:", run_prolog_query(prolog_code, 'node(a)'))
+    print("Checking if node 'b' exists:", run_prolog_query(prolog_code, 'node(b)'))
+    print("Checking if node 'c' exists:", run_prolog_query(prolog_code, 'node(c)'))
 
 
 if __name__ == "__main__":
