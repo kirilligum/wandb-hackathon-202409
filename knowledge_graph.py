@@ -5,7 +5,7 @@ from os import getenv
 import weave
 
 # Initialize Weave tracing
-weave.init(project="knowledge_graph_project")
+weave.init("knowledge_graph_project")
 
 
 @weave.op
@@ -97,12 +97,6 @@ def build_knowledge_graph(content_file):
     # Test the Prolog graph directly with the code
     test_prolog_graph(prolog_code)
 
-    # Use Weave to trace the graph creation process
-    with weave.trace("build_knowledge_graph"):
-        # Here you would parse the graph_data into a structured format
-        # For demonstration, let's assume graph_data is already structured
-        graph = parse_graph_data(graph_data)
-
     # return graph
     return graph_data
 
@@ -113,15 +107,7 @@ def parse_graph_data(graph_data):
     return graph_data
 
 
-def output_graph_prolog(graph):
-    # Convert the graph to Prolog format
-    prolog_output = ""
-    for node, connections in graph.items():
-        for connection in connections:
-            prolog_output += f"{connection['type']}({node}, {connection['target']}).\n"
-    return prolog_output
-
-
+@weave.op
 def extract_prolog_code(graph_data):
     """Extracts the Prolog code from the response."""
     start = graph_data.find("```prolog")
@@ -158,6 +144,33 @@ def test_prolog_graph(prolog_code):
     )
 
 
+@weave.op
+def old_test_prolog_graph(prolog_code):
+    """Runs a Prolog query to test the graph."""
+
+    def run_prolog_query(prolog_code, query):
+        # Write the Prolog code to a temporary file
+        with open("temp_prolog.pl", "w") as f:
+            f.write(prolog_code)
+        process = subprocess.Popen(
+            ["swipl", "-s", "temp_prolog.pl", "-g", query, "-t", "halt"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        stdout, stderr = process.communicate()
+
+        if process.returncode == 0:
+            return stdout.decode().strip()
+        else:
+            return stderr.decode().strip()
+
+    # Query Prolog
+    print(
+        "Checking if node 'canva' exists:",
+        run_prolog_query(prolog_code, "company(canva)"),
+    )
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Build a knowledge graph for marketing."
@@ -169,7 +182,3 @@ if __name__ == "__main__":
 
     # Build the knowledge graph
     graph = build_knowledge_graph(args.content)
-
-    # Output the graph in Prolog format
-    prolog_output = output_graph_prolog(graph)
-    print(prolog_output)
