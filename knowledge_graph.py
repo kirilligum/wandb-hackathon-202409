@@ -1,5 +1,6 @@
 import argparse
-import openrouter
+from openai import OpenAI
+from os import getenv
 import weave
 
 # Initialize Weave tracing
@@ -11,10 +12,23 @@ def build_knowledge_graph(content_file):
     with open(content_file, "r") as file:
         content = file.read()
 
-    # Use OpenRouter to generate structured output for the knowledge graph
-    client = openrouter.Client(api_key="your_openrouter_api_key")
-    response = client.completions.create(
-        model="text-davinci-003",
+    # Use OpenRouter with OpenAI API to generate structured output for the knowledge graph
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=getenv("OPENROUTER_API_KEY"),
+    )
+    response = client.chat.completions.create(
+        extra_headers={
+            "HTTP-Referer": "your_site_url",  # Optional, for including your app on openrouter.ai rankings.
+            "X-Title": "your_app_name",  # Optional. Shows in rankings on openrouter.ai.
+        },
+        model="openai/gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "user",
+                "content": f"Create a knowledge graph for marketing based on the following content: {content}",
+            },
+        ],
         prompt=f"Create a knowledge graph for marketing based on the following content: {content}",
         max_tokens=1500,
         temperature=0.5,
