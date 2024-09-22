@@ -18,24 +18,22 @@ def build_knowledge_graph(content_file):
         api_key=getenv("OPENROUTER_API_KEY"),
     )
     response = client.chat.completions.create(
-        extra_headers={
-            "HTTP-Referer": "your_site_url",  # Optional, for including your app on openrouter.ai rankings.
-            "X-Title": "your_app_name",  # Optional. Shows in rankings on openrouter.ai.
-        },
-        model="openai/gpt-3.5-turbo",
+        # model="meta-llama/llama-3.1-405b-instruct",
+        model="openai/gpt-4o-mini",
         messages=[
             {
                 "role": "user",
-                "content": f"Create a knowledge graph for marketing based on the following content: {content}",
+                "content": f"Create a knowledge graph in prolog language for marketing based on the following content: {content}",
             },
         ],
-        prompt=f"Create a knowledge graph for marketing based on the following content: {content}",
-        max_tokens=1500,
-        temperature=0.5,
+        # max_tokens=131000,
+        # temperature=0.5,
     )
 
     # Parse the response to extract the knowledge graph
-    graph_data = response.choices[0].message.content.strip()
+    # graph_data = response.choices[0].message.content.strip()
+    graph_data = response.choices[0].message.content
+    print("graph_data", graph_data)
 
     # Use Weave to trace the graph creation process
     with weave.trace("build_knowledge_graph"):
@@ -44,6 +42,7 @@ def build_knowledge_graph(content_file):
         graph = parse_graph_data(graph_data)
 
     return graph
+    # return graph_data
 
 
 def parse_graph_data(graph_data):
