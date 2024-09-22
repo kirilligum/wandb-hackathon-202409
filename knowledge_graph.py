@@ -13,43 +13,48 @@ def build_knowledge_graph(content_file):
     with open(content_file, "r") as file:
         content = file.read()
 
-    # # Use OpenRouter with OpenAI API to generate structured output for the knowledge graph
-    # client = OpenAI(
-    #     base_url="https://openrouter.ai/api/v1",
-    #     api_key=getenv("OPENROUTER_API_KEY"),
-    # )
-    # response = client.chat.completions.create(
-    #     # model="meta-llama/llama-3.1-405b-instruct",
-    #     model="openai/gpt-4o-mini",
-    #     messages=[
-    #         {
-    #             "role": "user",
-    #             "content": f"Create a knowledge graph in prolog language for marketing based on the following content: {content}",
-    #         },
-    #     ],
-    #     # max_tokens=131000,
-    #     # temperature=0.5,
-    # )
+    # Use OpenRouter with OpenAI API to generate structured output for the knowledge graph
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=getenv("OPENROUTER_API_KEY"),
+    )
+    response = client.chat.completions.create(
+        # model="meta-llama/llama-3.1-405b-instruct",
+        model="openai/gpt-4o-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": f"Create a knowledge graph in prolog language for marketing based on the following content: {content}",
+            },
+        ],
+        # max_tokens=131000,
+        # temperature=0.5,
+    )
 
     # # Parse the response to extract the knowledge graph
-    # # graph_data = response.choices[0].message.content.strip()
-    # Dummy graph data for demonstration purposes
-    graph_data = """
-    ```prolog
-    node(a).
-    node(b).
-    edge(a, b).
-    ```
-    """
+    # graph_data = response.choices[0].message.content.strip()
+    graph_data = response.choices[0].message.content
     prolog_code = extract_prolog_code(graph_data)
     print("Prolog Code:\n", prolog_code)
     # test_prolog_graph(prolog_code)
+
+    # Dummy graph data for demonstration purposes
+    # graph_data = """
+    # ```prolog
+    # node(a).
+    # node(b).
+    # edge(a, b).
+    # ```
+    # """
+    # prolog_code = extract_prolog_code(graph_data)
+    # print("Prolog Code:\n", prolog_code)
+    # test_prolog_graph(prolog_code)
     # Create a Prolog file
-    with open('knowledge_base.pl', 'w') as f:
+    with open("knowledge_base.pl", "w") as f:
         f.write(prolog_code)
 
     # Test the Prolog graph
-    test_prolog_graph('knowledge_base.pl')
+    test_prolog_graph("knowledge_base.pl")
 
     # Use Weave to trace the graph creation process
     # with weave.trace("build_knowledge_graph"):
@@ -87,9 +92,13 @@ def extract_prolog_code(graph_data):
 
 def test_prolog_graph(prolog_code):
     """Runs a Prolog query to test the graph."""
+
     def run_prolog_query(prolog_file, query):
-        process = subprocess.Popen(['swipl', '-s', prolog_file, '-g', query, '-t', 'halt'],
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            ["swipl", "-s", prolog_file, "-g", query, "-t", "halt"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         stdout, stderr = process.communicate()
 
         if process.returncode == 0:
@@ -98,9 +107,9 @@ def test_prolog_graph(prolog_code):
             return stderr.decode().strip()
 
     # Query Prolog
-    print("Checking if node 'a' exists:", run_prolog_query(prolog_code, 'node(a)'))
-    print("Checking if node 'b' exists:", run_prolog_query(prolog_code, 'node(b)'))
-    print("Checking if node 'c' exists:", run_prolog_query(prolog_code, 'node(c)'))
+    print("Checking if node 'a' exists:", run_prolog_query(prolog_code, "node(a)"))
+    print("Checking if node 'b' exists:", run_prolog_query(prolog_code, "node(b)"))
+    print("Checking if node 'c' exists:", run_prolog_query(prolog_code, "node(c)"))
 
 
 if __name__ == "__main__":
