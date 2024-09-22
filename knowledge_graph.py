@@ -1,5 +1,5 @@
 import argparse
-import openai
+import openrouter
 import weave
 
 # Initialize Weave tracing
@@ -11,16 +11,17 @@ def build_knowledge_graph(content_file):
     with open(content_file, "r") as file:
         content = file.read()
 
-    # Use OpenAI API to generate structured output for the knowledge graph
-    response = openai.Completion.create(
-        engine="text-davinci-003",
+    # Use OpenRouter to generate structured output for the knowledge graph
+    client = openrouter.Client(api_key="your_openrouter_api_key")
+    response = client.completions.create(
+        model="text-davinci-003",
         prompt=f"Create a knowledge graph for marketing based on the following content: {content}",
         max_tokens=1500,
         temperature=0.5,
     )
 
     # Parse the response to extract the knowledge graph
-    graph_data = response.choices[0].text.strip()
+    graph_data = response.choices[0].message.content.strip()
 
     # Use Weave to trace the graph creation process
     with weave.trace("build_knowledge_graph"):
