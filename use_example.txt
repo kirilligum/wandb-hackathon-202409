@@ -1,0 +1,133 @@
+https://chatgpt.com/share/66f19652-6d40-800e-ac58-53aa94daa0c2
+
+
+Certainly! Let's explore how to use the provided Prolog knowledge graph to answer a complex query that requires multiple reasoning steps.
+
+### Complex Query:
+
+**"Which companies attended events that were also attended by customers who purchased products offered by 'weights_biases'?"**
+
+This query involves multiple relations:
+
+1. Identifying products offered by `weights_biases`.
+2. Finding customers who purchased those products.
+3. Finding events attended by those customers.
+4. Identifying other companies that also attended those events.
+
+### Step-by-Step Solution:
+
+#### **1. Identify Products Offered by `weights_biases`:**
+
+We need to find all products or services offered by `weights_biases`.
+
+```prolog
+offers(weights_biases, ProductService).
+```
+
+From the knowledge graph:
+
+- `offers(weights_biases, model_registry).`
+- `offers(weights_biases, experiment_tracking).`
+- `offers(weights_biases, on_demand_notebooks).`
+- `offers(weights_biases, distributed_training).`
+
+#### **2. Find Customers Who Purchased Those Products:**
+
+We need customers who purchased any of the products offered by `weights_biases`.
+
+```prolog
+purchases(Customer, ProductService).
+offers(weights_biases, ProductService).
+```
+
+From the knowledge graph:
+
+- `purchases(thibault_main_de_boissiere, model_registry).`
+- `purchases(thibault_main_de_boissiere, experiment_tracking).`
+
+So, `thibault_main_de_boissiere` is a customer who purchased products offered by `weights_biases`.
+
+#### **3. Find Events Attended by Those Customers:**
+
+Identify events that the customer attended.
+
+```prolog
+attended_by(Event, thibault_main_de_boissiere).
+```
+
+From the knowledge graph:
+
+- `attended_by(ml_conference_2023, thibault_main_de_boissiere).`
+
+So, `ml_conference_2023` is an event attended by `thibault_main_de_boissiere`.
+
+#### **4. Identify Companies That Also Attended Those Events:**
+
+Find companies that attended the same events.
+
+```prolog
+attended_by(Event, Company).
+company(Company).
+Company \= weights_biases.
+```
+
+From the knowledge graph:
+
+- `attended_by(ml_conference_2023, canva).`
+
+So, `canva` is a company that attended `ml_conference_2023`.
+
+#### **5. Compile the Prolog Query:**
+
+Putting it all together, we can write a Prolog query to find such companies.
+
+```prolog
+% Prolog Query
+findall(Company, (
+    purchases(Customer, ProductService),
+    offers(weights_biases, ProductService),
+    attended_by(Event, Customer),
+    attended_by(Event, Company),
+    company(Company),
+    Company \= weights_biases
+), Companies).
+```
+
+#### **6. Execute the Query:**
+
+When we execute the above query in Prolog, we get:
+
+```prolog
+Companies = [canva].
+```
+
+### **Answer:**
+
+**`canva`** is the company that attended events also attended by customers who purchased products offered by `weights_biases`.
+
+### **Explanation:**
+
+- **Customer:** `thibault_main_de_boissiere` purchased `model_registry` and `experiment_tracking` from `weights_biases`.
+- **Event:** `thibault_main_de_boissiere` attended `ml_conference_2023`.
+- **Company:** `canva` also attended `ml_conference_2023`.
+- **Conclusion:** `canva` is connected through the event to a customer of `weights_biases`.
+
+### **Why This is Hard for an LLM to Answer on Its Own:**
+
+This query requires the integration of multiple relationships and entities:
+
+- Cross-referencing products, customers, events, and companies.
+- Excluding certain entities (e.g., ensuring the company found is not `weights_biases` itself).
+- Handling multiple steps of logical inference.
+
+An LLM might struggle with maintaining all these constraints and accurately performing multi-step reasoning without errors. Using the Prolog knowledge graph allows us to precisely define and execute the necessary logical operations to arrive at the correct answer.
+
+---
+
+### **Additional Notes:**
+
+You can modify the query to explore other complex questions, such as:
+
+- **"Which customers interact on social media platforms used by companies that offer AI tools?"**
+
+This would involve linking customers, social media interactions, companies, and the products they offer, requiring several reasoning steps that are facilitated by the Prolog knowledge graph.
